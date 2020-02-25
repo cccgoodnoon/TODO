@@ -10,7 +10,6 @@
               placeholder="What needs to be done?"
               autofocus
         >
-              <!-- @keyup.enter="addTodo($event.target)" -->
         <button type="button" class="f-add-button addBtn" @click="isShow = true;isAdd=true;isEdit=false;">添加</button>
         
       </div>
@@ -25,30 +24,8 @@
       <button type="button" class="f-add-button addBtn closeBtn" @click="isShow = false;">取消</button>
       <button type="button" class="f-add-button addBtn saveBtn" @click="addTodo">保存</button>
     </div>
-    <!-- /header 头部 -->
-    <!-- content 内容区-->
+    <!-- 任务 -->
     <section class="g-content">
-
-      <!-- 列表区 -->
-      <!-- <ul class="g-tasklist">
-        <li class="m-tasks" v-for="(todo,index) in todoList" :key=index v-show="isShowFilted(todo)">
-          <input type="checkbox" class="u-check"  @click="toChecked(todo,index)" v-model="todo.isChecked">
-          <div class="u-message" v-show="!todo.status" @dblclick="toEdit(todo)" :class="{f_delete:todo.isChecked}" style="float:left;">
-            {{todo.description}}
-          </div>
-
-          <div style="float:right;width:150px;">
-            <span  class="u-close-icon u-close"
-                  @click="editTodo(todo)"
-                  title="修改"
-            >修改</span>
-            <span style="margin-left:25px;"
-                  @click="deleteTodo(todo)"
-                  title="删除"
-            >删除</span>
-          </div>
-        </li>
-      </ul> -->
       <table class="listTB">
         <tr v-for="(todo,index) in todoList" :key=index >
             <td>
@@ -76,11 +53,12 @@
               <span class="editBtn"
                     @click="editTodo(todo)"
                     title="修改"
-              ><img src="../assets/edit.jpg" width="25px"></span>
-              <span style="margin-left:15px;"  class="delBtn"
+              ><img src="../assets/edit.png" width="25px"></span>
+              
+              <span style="margin-left:20px;"  class="delBtn"
                     @click="deleteTodo(todo)"
                     title="删除"
-              ><img src="../assets/delete.png"></span>
+              ><img src="../assets/delete.png" width="25px"></span>
             </td>
         </tr>
       </table>
@@ -179,7 +157,7 @@ export default {
           this.axios.post('/api/rest/anon/tasks/add/'+this.begintime+"/"+this.endtime+"/"+this.description+"/"+this.state)
           .then(msg =>{
               console.log(msg)
-              alert("添加成功！");
+              this.$message.success('添加成功!');
               thiz.getAll();
               thiz.isShow = false;
           })
@@ -190,7 +168,7 @@ export default {
             +this.endtime1+"/"+this.description+"/"+this.state+"/"+this.id)
           .then(msg =>{
               console.log(msg)
-              alert("修改成功！");
+              this.$message.success('编辑成功!');
               thiz.getAll();
               thiz.isShow = false;
           })
@@ -206,11 +184,14 @@ export default {
         this.endtime1 = row.endtime.substring(0,10);
         this.state = row.state;
         this.id = row.id;
+        
     },
     // 设置todo的状态
     toChecked (todo, index) {
       if(todo.state == 9){
-        alert("该任务已经完成！")
+        // alert("该任务已经完成！")
+        this.$message.success('该任务完成！');
+
         return false;
       }
       // console.log('已完成？' + index)
@@ -218,20 +199,26 @@ export default {
       this.axios.post('/api/rest/anon/tasks/editState/9/'+todo.id)
         .then(msg =>{
             console.log(msg)
-            alert("该任务完成成功！");
+            this.$message.success('该任务完成！');
             thiz.getAll();
         })
     },
     //删除操作
     deleteTodo(val){
       var thiz = this;
-      if(confirm("确定删除吗")){
-          this.axios.get('/api/rest/anon/tasks/delete/'+val.id)
-          .then(msg =>{
-             alert("删除成功！");
-             thiz.getAll();
-          })
-      }
+      this.$confirm('确定删除吗', '提示', {
+        type: 'warning'
+      }).then(() => {
+          this.axios.get('/api/rest/anon/tasks/delete/'+val.id).then(res => {
+              this.$message.success('删除成功!');
+              thiz.getAll(); 
+          }).catch((res) => {
+              this.$message.error('删除失败!');
+          });
+      }).catch(() => {
+          this.$message.info('已取消操作!');
+      });
+
     },
     // 过滤任务列表
     filteredTodoList () {
@@ -243,18 +230,7 @@ export default {
         return item._id === todo._id
       })
     },
-    // 获取任务列表
-    // getAll: function () {
-    //   let _this = this
-    //   getAllTask().then(res => {
-    //     if (res.status === 200) {
-    //       _this.todoList = res.data
-    //       console.log(_this.todoList)
-    //     } else {
-    //       alert('信息获取失败，请查看服务器是否开启')
-    //     }
-    //   })
-    // },
+
     getAll: function () {
       let _this = this
       this.axios.get('/api/rest/anon/tasks')
@@ -313,7 +289,7 @@ export default {
 
 <style>
 #main{
-  padding:10px 0;
+  padding:100px 0;
   margin:0 auto;
   width:600px;
   height:100%;
@@ -346,7 +322,7 @@ export default {
   top: 18px;
   
   left: 22px;
-  cursor: pointer;
+  /* cursor: pointer; */
 }
 
 #main .g-header .f-add .f-add-task{
@@ -363,11 +339,12 @@ export default {
 #main .g-header .f-add .f-add-button{
   position: absolute;
   width: 80px;
-  height: 60px;
+  height: 80px;
   line-height: 20px;
-  top: 0px;
-  right: 0px;
+  top: 10px;
+  right: 10px;
   cursor: pointer;
+  outline:none;
 }
 
 /* content */
@@ -468,16 +445,23 @@ export default {
   padding: 3px 7px;
   text-decoration: none;
   border: 1px solid transparent;
-  border-radius: 3px;
+  border-radius: 12px;
 }
 
 .filters li a:hover{
   border-color: rgba(175, 47, 47, 0.1);
+  /* background: rgba(175, 47, 47, 0.2); */
+
 }
 
-.filters li a.selected{
-  border-color: rgba(175, 47, 47, 0.2);
+.filters li a:focus{
+  background: rgba(175, 47, 47, 0.2);
+
 }
+
+/* .filters li a.selected{
+  border-color: rgba(175, 47, 47, 0.2);
+} */
 
 .f_delete{
   text-decoration: line-through;
@@ -491,33 +475,35 @@ export default {
 
 .clear-completed:hover {
   cursor: pointer;
-  text-decoration: underline;
+  /* text-decoration: underline; */
 }
 .addBtn{
-      border: none;
-    background: #02b3d2;
+    border: none;
+    background: #71c9ce;
     height: 40px !important;
-    border-radius: 5px;
+    border-radius: 18px;
     font-size: 15px;
     color: #fff;
-    width:110px;
+    width:80px;
     
 }
 .addModel{
     width: 400px;
     height: 300px;
-    border: 1px solid #666;
+    /* border: 1px solid #666; */
     padding:20px;
     background: #fff;
     border-radius: 5px;
     position: fixed;
     z-index: 10000000000;
     left: 36%;
-    box-shadow: gray 10px 10px 30px 10px ;
+    box-shadow: gray 5px 10px 20px 5px ;
 }
 .addModel input,.addModel textarea{
   width:250px;
   margin-top:15px;
+  margin-left:15px;
+
   border-radius: 5px;
 }
 .addModel span{
@@ -526,13 +512,25 @@ export default {
 .addModel input{
   height: 35px;
   border: 1px solid #bfbdbd;
+  padding-left: 10px;
 }
 .addModel textarea{
-  height: 80px;
+  height: 60px;
 }
+
 .closeBtn{
   background:#ddd;
   color:#333;
+  margin-right: 10px;
+  cursor: pointer;
+  outline:none;
+
+}
+
+.saveBtn{
+  cursor: pointer;
+  outline:none;
+
 }
 .listTB{
   width:100%;
